@@ -1,0 +1,85 @@
+===========================================================================
+ Route Filtering
+
+Inter-Area [LSA Type3 Filtering]
+
+Route-redistribution with Route Filtering
+
+access-list 1 deny 88.88.88.0 0.0.0.255
+access-list 1 permit any
+!
+route-map E2o
+ match ip address 1
+router ospf 1
+ redistribute eigrp 100 route-map E2o
+
+===========================================================================
+Area Types
+
+Stub Area
+Characteristics:
+1. ABR will block all External Routes from going into a Stub Area [LSA Type 4/5].
+2. ABR will inject a default route into the area to maintain reachability to the external routes.
+
+ALL routers within the Area including the ABR
+
+router ospf 1
+ area 10 stub
+
+----------------------------------
+Totally Stubby Area - Extension of the Stub Area 
+
+Characteristics:
+1. Extension of Stub Area [Block Type 4/5; Inject Default Route] 
+2. ABR also Blocks Type 3 except for the default route.
+
+Only on the ABR:
+
+router ospf 1
+ area 10 stub no-summary
+
+----------------------------------
+Not-So-Stubby-Area - NSSA
+
+Characteristics:
+1. The ABR blocks Type 4/5 from the Backbone.
+2. The internal ASBR injects the External routes as Type 7 [O N2].
+3. The ABR converts the Type 7 into a Type 5 and sends it to Area 0.
+
+On ALL Routers within the Area
+
+router ospf 1
+ area 20 nssa
+
+Note: In this type, no Default route in injected. Hence, Area 20 can not reach the external routes
+from the Backbone.
+
+----------------------------------
+NSSA-Stub
+
+Characteristics:
+1. Extension of a NSSA [ABR blocks type 4/5. Internal ASBR injects Type 7. ABR converts 7 to 5].
+2. ABR injects a default route.
+
+Only on the ABR
+
+router ospf 1
+ area 20 nssa default-information-originate
+
+Note: The default route is injected as a Type 7.
+
+----------------------------------
+NSSA-Totally-Stub
+
+Characteristics:
+1. Extension of a NSSA [ABR blocks type 4/5. Internal ASBR injects Type 7. ABR converts 7 to 5].
+2. ABR injects a default route.
+3. ABR will block Type 3 as well.
+
+Only on the ABR
+
+router ospf 1
+ area 20 nssa no-summary
+
+Note: The default route is injected as a Type 3.
+===========================================================================

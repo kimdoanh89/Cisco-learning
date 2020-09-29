@@ -1,0 +1,8 @@
+Border Gateway Protocol [BGP]
+
+- The purpose of BGP is to connect 2 AS's to each other.
+- It is generally run on the Edge Routers.
+- BGP sets up relationship's with neighbors based on Unicast.
+- There are 2 main advantages of BGP
+  - Scalability
+  - Gives you a lot of control to choose the best route
