@@ -1,0 +1,71 @@
+IP Services
+
+FHRP - HSRP
+
+Basic
+
+R2:
+
+int e0/0
+ standby 10 ip 192.1.10.254
+ standby 10 priority 105
+ standby 10 preempt
+ standby 10 authentication md5 key-string cisco123
+
+R3:
+
+int e0/0
+ standby 10 ip 192.1.10.254
+ standby 10 preempt
+ standby 10 authentication md5 key-string cisco123
+
+default priority 100, bigger priority will be active
+states: Active, Standby, Init, Speak, Listen
+
+HSRP with Interface Tracking
+
+R2:
+track 100 interface s1/0 line-protocol
+int e0/0
+ standy 10 track 100 decrement 10
+
+HSRP with IP SLA Tracking
+
+R2:
+Configure SLA on the Edge Router
+ip sla 10
+ icmp-echo 1.1.1.1 source-ip 192.1.12.2
+ frequency 10
+ timeout 5000
+ip sla schedule 10 start-time now life forever
+
+Link SLA with a Track object
+
+track 101 ip sla 10 reachability
+
+Link the Track object on the Standby configuration under the Interface
+
+int e0/0
+ standby 10 track 101 decrement 10
+
+R1:
+ip sla responder
+
+=========================================================================
+VRRP
+States: Init, Backup, Master, 
+
+Remove all configure on e0/0 of R2: default int e0/0
+Remove all configure on e0/0 of R2: default int e0/0
+
+R2:
+int e0/0
+ vrrp 10 ip 192.1.10.254
+ vrrp 10 priority 105
+ vrrp 10 authentication md5 key-string cisco123
+ vrrp 10 track 100 decrement 10
+
+R3:
+int e0/0
+ vrrp 10 ip 192.1.10.254
+ vrrp 10 authentication md5 key-string cisco123

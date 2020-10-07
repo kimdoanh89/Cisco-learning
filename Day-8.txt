@@ -6,3 +6,61 @@ Border Gateway Protocol [BGP]
 - There are 2 main advantages of BGP
   - Scalability
   - Gives you a lot of control to choose the best route
+
+Configuring BGP between 2 AS's.
+
+R1:
+
+router bgp 1000
+ network 1.0.0.0 mask 255.0.0.0
+ neighbor 192.1.14.4 remote-as 400
+
+Injecting Routes into BGP
+
+Major netwokrs
+
+router bgp 1000
+ network 1.0.0.0
+
+Subnets
+
+router bgp 1000
+ network 11.11.11.0 mask 255.255.255.0
+
+Inject a route into BGP without using the Network Statement
+205.1.4.0/24, 205.1.5.0/24, 205.1.6.0/24, 205.1.7.0/24
+
+route-map RC
+ match interface lo201 lo202 lo203 lo204
+ set origin igp
+
+router bgp 500
+ redistributed connected route-map RC
+ 
+-------------------------------------------------------------------
+IBGP Configuration
+1. Configure a Loopback on the Router and Advertise it in the IGP
+
+R1
+interface lo10 
+ ip address 10.1.1.1 255.255.255.0
+!
+router eigrp 100
+ no auto
+ network 192.1.12.0
+ network 192.1.13.0
+ network 10.0.0.0
+
+2. Configure the IBGP Neighbor Relationship based on the Loopback
+
+R1
+Router bgp 1000
+ neighbor 10.2.2.2 remote-as 1000
+ neighbor 10.2.2.2 update-source lo11
+ neighbor 10.2.2.2 next-hop-self
+
+R2:
+Router bgp 1000
+ neighbor 10.1.1.1 remote-as 1000
+ neighbor 10.1.1.1 update-source lo11
+ neighbor 10.1.1.1 next-hop-self
