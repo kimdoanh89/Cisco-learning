@@ -1,0 +1,177 @@
+IP Services
+=========================================================================
+FHRP - HSRP
+
+Basic
+
+R2:
+
+int e0/0
+ standby 10 ip 192.1.10.254
+ standby 10 priority 105
+ standby 10 preempt
+ standby 10 authentication md5 key-string cisco123
+
+R3:
+
+int e0/0
+ standby 10 ip 192.1.10.254
+ standby 10 preempt
+ standby 10 authentication md5 key-string cisco123
+
+default priority 100, bigger priority will be active
+states: Active, Standby, Init, Speak, Listen
+
+HSRP with Interface Tracking
+
+R2:
+track 100 interface s1/0 line-protocol
+int e0/0
+ standy 10 track 100 decrement 10
+
+HSRP with IP SLA Tracking
+
+R2:
+Configure SLA on the Edge Router
+ip sla 10
+ icmp-echo 1.1.1.1 source-ip 192.1.12.2
+ frequency 10
+ timeout 5000
+ip sla schedule 10 start-time now life forever
+
+Link SLA with a Track object
+
+track 101 ip sla 10 reachability
+
+Link the Track object on the Standby configuration under the Interface
+
+int e0/0
+ standby 10 track 101 decrement 10
+
+R1:
+ip sla responder
+
+=========================================================================
+VRRP
+States: Init, Backup, Master, 
+
+Remove all configure on e0/0 of R2: default int e0/0
+Remove all configure on e0/0 of R2: default int e0/0
+
+R2:
+int e0/0
+ vrrp 10 ip 192.1.10.254
+ vrrp 10 priority 105
+ vrrp 10 authentication md5 key-string cisco123
+ vrrp 10 track 100 decrement 10
+
+R3:
+int e0/0
+ vrrp 10 ip 192.1.10.254
+ vrrp 10 authentication md5 key-string cisco123
+
+
+=========================================================================
+Embedded Event Manager [EEM] Applet  
+
+event manager applet Int-Down-Solution
+ event syslog pattern "changed state to administratively down"
+ action 10 cli command "en"
+ action 20 cli command "conf t"
+ action 30 cli command "Interface s1/0"
+ action 40 cli command "no shut"
+ action 50 syslog msg "Please don't shut this interface down. Will cause the entire network to go down"
+
+ =========================================================================
+ NTP
+
+ NTP Master - Provides the other devices with Time Sync.
+ NTP Client - Gets the Clock from the NTP Master/Server.
+ Exchange and set based on GMT timezone
+
+R1 DUBAI [Master]
+
+Clock timezone DUBAI 4
+do clock set 07:33:00 07 Oct 2020
+ntp master
+
+R2 RIYADH [Client]
+
+Clock timezone RIYADH 3
+ntp server 1.1.1.1
+
+R3 LOS [Client]
+
+Clock timezone LOS -7
+ntp server 192.1.13.1
+
+R5 Houston [Client]
+
+Clock timezone Houston -5
+ntp server 192.1.10.3
+
+Authentication
+
+MASTER 
+ntp authenticate
+ntp authentication-key 11 md5 cisco123
+ntp trusted-key 11
+
+CLIENTS
+ntp authenticate
+ntp authentication-key 11 md5 cisco123
+ntp trusted-key 11
+ntp server 192.1.XX.X key 11
+
+=========================================================================
+DHCP on a Router
+
+DHCP server enabled by default
+
+R2 as DHCP server
+ip dhcp excluded-address 192.1.10.1 192.1.10.20
+ip dhcp excluded-address 192.1.10.91 192.1.10.100
+ip dhcp excluded-address 192.1.10.254
+
+ip dhcp excluded-address 192.1.20.1 192.1.20.20
+ip dhcp excluded-address 192.1.20.91 192.1.20.100
+ip dhcp excluded-address 192.1.20.254
+
+ip dhcp pool ABC
+ network 192.1.10.0 /24
+ default-router 192.1.10.254
+ dns-server 192.1.10.5
+
+ip dhcp pool DEF
+ network 192.1.20.0 /24
+ default-router 192.1.20.5
+ dns-server 192.1.10.5
+
+DHCP Helper on Router
+
+R5 - DHCP Helper
+int e0/1
+ Description The interface facing the clients; away from the DHCP server.
+ ip helper-address 192.1.10.2
+
+
+R4 - DHCP client
+int e0/0
+ ip address dhcp
+ no shut
+
+DHCP client sends DHCP request to broadcast source 0.0.0.0 destination 255.255.255.255.
+
+R6 - DHCP client
+int e0/0
+ ip address dhcp
+ no shut
+
+DHCP client sends DHCP request to broadcast source 0.0.0.0 destination 255.255.255.255.
+When reach R5, R5 sends DHCP request on behalf of R6 with source 192.1.20.5 destination 192.1.10.2.
+
+DHCP address assignment 
+
+In DHCP server, there are two pools. The question is how to assign:
+- If source 0.0.0.0, check againts the interface that receives DHCP request.
+- If source is not 0.0.0.0, check againts the source address of the DHCP request.
