@@ -68,6 +68,17 @@ High-Level Designed Considerations
 
 Introduction to Cisco SD-WAN
 
+- Hybrid WAN:
+  - Additional non-MPLS commodity links (Internet, L2VPN, wireless, 4G/LTE) are added to the WAN to provide alternative paths.
+  - provides transport independence.
+  - some applications can be sent over these commodity links versus the service provider-controlled L3VPN MPLS links.
+  - WAN connectivity is based on the network topology and managed using a peer-to-peer model. Routing (OSPF, BGP) and security (IPsec) control planes
+  run independently of each other. When a configuration change is required, it has to be provisioned and propagated across all the control plane peers.
+
+- Transport independence:
+  - Cisco SD-WAN leverages a transport-independent fabric topology that is used to connect remote locations together.
+    - 
+
 ========================================================
 
 Use cases demanding Changes in the WAN
