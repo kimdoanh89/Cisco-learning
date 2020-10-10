@@ -94,6 +94,23 @@
 
 ## Orchestration Plane
 
+- vBond is reponsible for:
+  - Providing initial authentication for participation on the fabric
+  - Acting as the glue that discovers and brings all other components together
+
+- Multiple vBonds can be deployed for high availability:
+  - WAN Edge can point to only a single vBond
+  - Recommend use DNS and have a single A record points to all vBond IPs; try to connect each one sequentially
+
+- When WAN Edge first joins
+  - it knows only the vBond through: PNP, ZTP, Boostrap configuration, Manual configuration.
+  - attempts to build a temporary connection to vBond over each transport
+    - each component authenticates each other
+    - a Datagram Transport Layer Security (DTLS) tunnel is established
+    - vBond distributes connectivity information for the vSmart and vManage to the WAN Edge
+  - this connection will be torn down when control plane connectivity is up to vManage, vSmart
+
 ## Multi-tenancy Options
+
 
 ## Deployment Options
