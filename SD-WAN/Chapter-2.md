@@ -6,10 +6,12 @@
 
 ## Data Plane
 - WAN Edges: could be vEdge routers or XE SD-WAN routers.
-- Data plane devices are deployed at branches, data centers, large campuses, colocation facilities, or in the cloud. Each site can have a single WAN Edge or multiple WAN Edges.
+- Data plane devices are deployed at branches, data centers, large campuses, colocation facilities, or in the cloud. 
+Each site can have a single WAN Edge or multiple WAN Edges.
 - Data plane connections are only between data plane devices, secured with IPsec tunnels.
   - Have native segmentation
 - SD-WAN header
+
 ![text](images/figure-2.2.PNG)
 
 - Cisco SD-WAN support diverse topologies, per-VPN topology.
@@ -27,12 +29,16 @@
   - First, connect to Plug and Play (PNP) or ZTP server
   - Connect to orchestration plane to learn about other components
   - Establish BFD connection to all other WAN Edges; full-mesh by default.
-  - it attempts to build control connections across each transport. By default, if a transport doesn’t have control connectivity to any of the Cisco SD-WAN controllers, then it won’t build a data plane connection across that transport either.
+  - it attempts to build control connections across each transport. By default, if a transport doesn’t have control
+  connectivity to any of the Cisco SD-WAN controllers, then it won’t build a data plane connection across that transport either.
 
 - WAN Edges can be physical or virtual:
   - Physical: Cisco Integrated Services Router (ISR), Cisco Advanced Services Router (ASR), and Cisco vEdges.
   - Virtual: Cisco Cloud Services Router (CSR1000v) running XE SD-WAN and Cisco vEdge Cloud.
-  - Virtual can be deployed on public, private clouds; or at branch via Cisco Enterprise Network Compute System (ENCS) and Cisco Cloud Services Platform (CSP).
+  - Virtual can be deployed on public, private clouds; or at branch via Cisco Enterprise Network Compute System (ENCS)
+  and Cisco Cloud Services Platform (CSP).
+
+![text](images/Table-2.1.PNG)
 
 - Choosing WAN Edge: throughput requirement, data plane tunnel requirement, type of interfaces requirement.
   - Cisco vEdge platforms support Ethernet, LTE, and wireless interfaces
@@ -44,11 +50,13 @@
     - Reduced bandwidth requirements and latency on costly WAN circuits
     - Guest access
     - Improved user experience to Cloud SAAS and IAAS applications
+
 ![text](images/figure-2.4.PNG)
 
 ## Management Plane
 
-- vManage provides a single pane of glass to manage the SD-WAN solution: onboarding, provisioning, policy creation, software management, trouble shooting and monitoring.
+- vManage provides a single pane of glass to manage the SD-WAN solution: onboarding, provisioning, policy creation,
+software management, trouble shooting and monitoring.
 - Can interact with vManage using API, REST and NETCONF.
 - vManage is clustered, with multiple clusters deployed regionally or globally.
   - a single cluster consists of three or more but must be odd number
@@ -110,7 +118,27 @@
     - vBond distributes connectivity information for the vSmart and vManage to the WAN Edge
   - this connection will be torn down when control plane connectivity is up to vManage, vSmart
 
+- vBond provides Network Address Transaltion (NAT) traversal.
+  - VBond operates as STUN Server
+  - WAN Edge operates as STUN Client
+
+- vBond can detect when WAN Edges are behind a NET device such as a firewall
+- vBond must be publicly addressable, though this could be via 1:1 static NAT
+
 ## Multi-tenancy Options
 
+- Cisco SD-WAN supports multiple modes of segmentation:
+  - Dedicated tenancy: each tenant has dedicated components and the data plane is segmented as well.
+  - VPN tenancy: segments only the data plane of the VPN topology, define read-only user to view and monitor their
+  VPN within vManage.
+  - Enterprise tenancy: orchestration and management planes are operating in multi-tenancy mode, control plane is
+  dedicated, per-tenant.
+
+![text](images/figure-2.10.PNG)
 
 ## Deployment Options
+
+- Multiple deployment options are supported:
+  - Using Cisco Cloud: Cisco builds all SD-WAN components.
+  - Private Cloud: Cisco SD-WAN controllers are deployed in different clouds: Amazon AWS, Microsoft Azure.
+  - On-premises: Cisco SD-WAN controllers are deployed in traditional data center.
