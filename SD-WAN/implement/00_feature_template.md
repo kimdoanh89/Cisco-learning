@@ -29,6 +29,6 @@ Tunnel configuration:
 - Turn on tunnel interface.
 - Select color as `mpls`.
 
-![text](images/BR-VE-VPNINT-VPN0-G0-tunnel1.PNG)
+![text](images/BR-VE-VPNINT-VPN0-G0-Tunnel1.PNG)
 
-![text](images/BR-VE-VPNINT-VPN0-G0-tunnel-allow-service.PNG)
+![text](images/BR-VE-VPNINT-VPN0-G0-Tunnel-allow-service.PNG)
