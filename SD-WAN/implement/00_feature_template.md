@@ -56,14 +56,24 @@ Copy from VPN0, change the following fields:
 
 ### 1.3. Create VPN Interface Ethernet 
 #### Create BR-VE-VPNINT-VPN0-G0
-Basic configuration:
+- Template Name: BR-VE-VPNINT-VPN0-G0
+- Description: BR-VE-VPNINT-VPN0-G0
+- Basic Configuration
+  - Shutdown: Global: No
+  - Interface Name: Global: ge0/0
+  - Description: Global: Transport MPLS
+- IPv4 Address: Static: Device Specific
+  - Key Value: vpn0_g0_if_ipv4_address
 
 ![text](images/BR-VE-VPNINT-VPN0-G0-basic.PNG)
 
-Tunnel configuration:
-- Turn on tunnel interface.
-- Select color as `mpls`.
-- Allow service: `All`, `NETCONF`, `SSH`
+- Tunnel 
+  - Tunnel Interface: Global: On
+  - Color: Global: mpls
+- Allow Service
+  - All: Global: On
+  - NETCONF: Global: On
+  - SSH: Global: On
 
 ![text](images/BR-VE-VPNINT-VPN0-G0-Tunnel1.PNG)
 
@@ -72,7 +82,7 @@ Tunnel configuration:
 #### Create BR-VE-VPNINT-VPN0-G1
 Copy from BR-VE-VPNINT-VPN0-G0, only change the following fields:
 - Interface name: 'ge0/1'
-- Description: `Transport MPLS`
+- Description: `Transport Internet`
 - Select color as `biz-internet`
 
 #### Create BR-VE-VPNINT-VPN0-G2
