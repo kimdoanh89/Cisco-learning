@@ -169,3 +169,43 @@ Copy from BR-VE-VPNINT-VPN0-G0, only change the following fields:
 - Attach vEdge2
 
 ![text](images/Attach-vEdge2.PNG)
+
+- Check the BGP configuration on `vEdge1`
+
+```bash
+vEdge1# sh bgp summary
+vpn                    0
+bgp-router-identifier  192.168.255.1
+local-as               65001
+rib-entries            49
+rib-memory             5488
+total-peers            2
+peer-memory            9632
+Local-soo              SoO:0:1
+ignore-soo             
+                       MSG       MSG       OUT                     PREFIX  PREFIX  PREFIX                
+NEIGHBOR         AS    RCVD      SENT      Q      UPTIME           RCVD    VALID   INSTALLED  STATE      
+---------------------------------------------------------------------------------------------------------
+155.48.1.254     155   100       89        0      0:01:23:56       25      25      18         established
+220.90.1.254     300   98        89        0      0:01:23:53       25      25      7          established
+```
+
+- Check the BGP configuration on `vEdge2`
+
+```bash
+vEdge2# sh bgp summary 
+vpn                    0
+bgp-router-identifier  192.168.255.2
+local-as               65002
+rib-entries            49
+rib-memory             5488
+total-peers            2
+peer-memory            9632
+Local-soo              SoO:0:2
+ignore-soo             
+                       MSG       MSG       OUT                     PREFIX  PREFIX  PREFIX                
+NEIGHBOR         AS    RCVD      SENT      Q      UPTIME           RCVD    VALID   INSTALLED  STATE      
+---------------------------------------------------------------------------------------------------------
+155.48.2.254     155   11        10        0      0:00:06:52       25      25      18         established
+220.90.2.254     300   11        12        0      0:00:06:42       25      25      7          established
+```
