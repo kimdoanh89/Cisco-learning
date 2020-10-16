@@ -30,7 +30,7 @@ Before starting create template, it is very important to plan the template name 
   - System template for vEdge Cloud at a Branch: BR-VE-SYSTEM
   - VPN template for vEdge Cloud at a Branch: BR-VE-VPN-VPN0
 
-When we create a template, for each parameter we have three types of setting as follows:
+When we create a template, for each parameter we have three types of settings as follows:
 - Global: Apply to all devices using this template, will not be asked for this parameter when the template is attached to a device.
 - Device specific: when apply template, we will need to specify this parameter.
 - Default:
@@ -48,7 +48,7 @@ When we create a template, for each parameter we have three types of setting as 
 We create the first `BR-VE-SYSTEM` template as in the following figure.
 ![text](images/BR-VE-SYSTEM.PNG)
 
-### 1.2. Create Banner Template
+### 1.2. Create Banner Template (Optional)
 - Template name: VE-banner
 - Description: VE-banner
 - Login banner: Global "This is vEdge Cloud Login banner"
