@@ -201,6 +201,9 @@ Copy from BR-VE-VPNINT-VPN0-G0, only change the following fields:
   - VPN 512: BR-VE-VPN-VPN512
     - VPN Interface:
       - BR-VE-VPNINT-VPN512-ETH0
+- Service VPN
+  - VPN 1: BR-VE-VPN-VPN1
+    - VPN Interface: BR-VE-VPNINT-VPN1-G3
 
 ![text](images/BR-VE-DEV-TEMP-transport-mgmt-vpn.PNG)
 
