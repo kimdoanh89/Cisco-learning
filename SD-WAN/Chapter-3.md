@@ -429,5 +429,6 @@ Consider we have WAN Edge A, B, and C.
 - For communication between A and B: A will use key AB to encrypt data, B will use key BA to encrypt data.
 - For communication between A and C: A will use key AC to encrypt data, C will use key CA to encrypt data.
 
-Overhead Issues: Cisco SD-WAN use Path MTU (Maximum Transmission Unit) discovery mechanism via BFD protocol to probe 
+### Overhead Issues
+Cisco SD-WAN use Path MTU (Maximum Transmission Unit) discovery mechanism via BFD protocol to probe 
 the tunnel to determine the maximum packet size. By default, the tunnel is checked every minute.
