@@ -331,8 +331,6 @@ SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE I
 192.168.255.2    2        up          lte              lte              220.90.101.101                  220.90.2.2                      12426       ipsec  7           1000           0:00:19:28      0      
 
 
-
-
 vEdge1# show bfd sessions
                                       SOURCE TLOC      REMOTE TLOC                                      DST PUBLIC                      DST PUBLIC         DETECT      TX                              
 SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE IP                       IP                              PORT        ENCAP  MULTIPLIER  INTERVAL(msec) UPTIME          TRANSITIONS 
@@ -367,3 +365,69 @@ SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE I
 ```
 
 ## Network Address Translation
+### NAT types
+
+There are various types of NAT deployments.
+- Full Cone NAT: one-to-one or static NAT, can have multiple full cone NATs using the same public IP, but the internal
+ports must be different per internal host. External and internal ports don't need to match.
+- Symmetric NAT: dynamic PAT: the original source IP will be translated to the outside IP address, and the source port
+will be translated to another port (up to 63335 hosts behind a single public IP).
+- Addressed Restricted Cone NAT: similar to full cone NAT, except only allows external hosts to communicate to internal
+host if that host has communicated with the external host before on any port.
+- Port Restricted Cone NAT: similar to address restricted cone NAT, except it uses port number as a filter.
+
+### Cisco SD-WAN solution
+
+When the WAN Edge initially connects to vBond, it learns about other components in the fabric and also if it is behind
+a NAT device or not using STUN (RFC 5389) mechanism. An example is as follows:
+1. STUN Request: Original SRC IP is 192.168.1.2
+2. Firewall translates SRC IP to 209.165.201.1
+3. vBond receives STUN request 
+4. vBond responds with STUN response contains translated IP.
+5. Firewall receives packets and translates destination IP to 192.168.1.2
+6. WAN Edge receives packets with different IP in STUN Response, it knows it's behind a NAT.
+
+Symmetric NAT can cause issues for data plane connectivity.
+- If both WAN Edges are behind symmetric NAT, the data plane connectivity will be failed.
+- Required at least one fof the WAN Edges not use symmetric NAT.
+
+### Network Segmentation
+
+Network Segmantation is accomplished via VPNs. There are three different types of VPNs:
+- Service VPN: LAN side of the routers (service side), VPN 1 to 511.
+- Transport VPN: WAN side of the routers, VPN0.
+- Management VPN: out-of-band management interface, VPN 512.
+
+Each data packet will carry a VPN ID that identifies the VPN it belongs to on the overlay.
+
+## Data Plane Encryption
+
+Cisco SD-WAN supports:
+- Authentication: 2048-bit RSA encryption, Encapsulation Security Payload (ESP), and Authentication Header (AH).
+- Encryption: AES with 256-bit key length.
+- Integrity: Hashing mechanism with Galois Counter Mode (GCM) of AES-256; and Anti-Replay Protection.
+
+Cisco SD-WAN implements key exhange, negotiations within control plane that eliminates the need for Internet Key
+Exchange (IKE) protocol.
+- Each WAN Edge generates an encryption key with AES-256.
+- Each WAN Edge advertises the key via an OMP route update. vSmart receives and reflects the key to the rest of the
+network.
+- All WAN Edges have their respective peer keys.
+
+By default, the key exchange between WAN Edges and vSmart uses symmetric keys in an asymetric fashion.
+- When WAN Edge 1 sends data to WAN Edge 2, it encrypts data using WAN Edge 2's key and WAN Edge 2 uses its key for 
+decryption.
+- The same, when WAN Edge 2 sends data to WAN Edge 1, it encrypts data using WAN Edge 1's key.
+
+### Data Plane Encryption with Pairwise
+
+The same key isn't used across all devices in the fabric for encryption and decryption. With pairwise, the unique
+key pairs are used between two WAN Edges. Pairwise is disable by default, can be configured via templates.
+
+Consider we have WAN Edge A, B, and C. 
+- Each WAN Edge generates a key for each transport and each peer. This key will be advertised via OMP to vSmart.
+- For communication between A and B: A will use key AB to encrypt data, B will use key BA to encrypt data.
+- For communication between A and C: A will use key AC to encrypt data, C will use key CA to encrypt data.
+
+Overhead Issues: Cisco SD-WAN use Path MTU (Maximum Transmission Unit) discovery mechanism via BFD protocol to probe 
+the tunnel to determine the maximum packet size. By default, the tunnel is checked every minute.
