@@ -200,7 +200,93 @@ vSmart can advertise up to 16 equal-cost routes. By default, advertise 4 equal-c
 By default, OMP will automatically redistribute Connected, Static, OSPF intra-area, OSPF inter-area. Redistribution
 of BGP, EIGRP, and OSPF external must be explicitly configured.
 
-Rooting Loop occurs when tow or more routers have mutual redistribution from the WAN and the LAN routing protocols.
-- OSPF Loop prevention with Down Bit.
+Rooting Loop occurs when two or more routers have mutual redistribution from the WAN and the LAN routing protocols.
+- OSPF Loop prevention with Down Bit: When a route is redistributed from OMP to OSPF, WAN Edge sets Down bit, then
+this LSA moves across the network and gets to other WAN Edge and will be dropped.
 - BGP Loop Prevention with Site of Origin (SoO): When the other WAN Edge receives BGP update from core network, 
 the BGP update with the SoO matches its own site ID will be dropped.
+- EIGRP Loop prevention with External Protocol Field: when redistributing from OMP into EIGRP, External Protocol is
+set to **OMP-Agent**. When other WAN Edge receives, it sets "SD-WAN-Down" bit and its AD to 252.
+
+# Data Plane Operations
+## TLOC colors
+There are private and public colors.
+- Public colors: 3g, biz-internet, public-internet, lte, blue, bronze, custom1, custom2, custom3, gold, green,
+red, silver. Use when there is a NAT between WAN Edge devices
+- Private colors: metro-ethernet, mpls, private1 to private6. Only use when there is no NAT between devices (overlay).
+
+When establishing the IPsec data plane, a fush mesh connectivity between all routers in the fabric is established by
+default. 
+
+Consider vEdge1 with 3 colors: mpls, biz-internet, lte:
+```bash
+vEdge1# show omp tlocs advertised | b ADD
+ADDRESS                                           
+FAMILY   TLOC IP          COLOR            ENCAP  
+--------------------------------------------------
+ipv4     192.168.255.1    mpls             ipsec  
+         192.168.255.1    biz-internet     ipsec  
+         192.168.255.1    lte              ipsec  
+```
+
+Consider vEdge2 with 3 colors: mpls, biz-internet, lte:
+```bash
+vEdge2# show omp tlocs advertised | b ADD
+ADDRESS                                           
+FAMILY   TLOC IP          COLOR            ENCAP  
+--------------------------------------------------
+ipv4     192.168.255.2    mpls             ipsec  
+         192.168.255.2    biz-internet     ipsec  
+         192.168.255.2    lte              ipsec  
+```
+
+Let's see the BFD connections between vEdge1 (3 colors: mpls, biz-internet, lte) and vEdge2 (3 colors: mpls,
+biz-internet, lte). Each vEdge has three colors, so with full-mesh connectivity we have 3*3 = 9 BFD connections.
+
+```bash
+vEdge1# show bfd sessions 
+                                      SOURCE TLOC      REMOTE TLOC                                      DST PUBLIC                      DST PUBLIC         DETECT      TX                              
+SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE IP                       IP                              PORT        ENCAP  MULTIPLIER  INTERVAL(msec) UPTIME          TRANSITIONS 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+192.168.255.2    2        up          biz-internet     biz-internet     155.48.1.1                      155.48.2.2                      12346       ipsec  7           1000           0:00:38:06      0           
+192.168.255.2    2        up          biz-internet     mpls             155.48.1.1                      172.16.2.2                      12426       ipsec  7           1000           0:00:01:00      0           
+192.168.255.2    2        up          biz-internet     lte              155.48.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:01:00      0           
+192.168.255.2    2        up          mpls             biz-internet     172.16.1.1                      155.48.2.2                      12346       ipsec  7           1000           0:00:00:58      0           
+192.168.255.2    2        up          mpls             mpls             172.16.1.1                      172.16.2.2                      12426       ipsec  7           1000           0:00:00:58      0           
+192.168.255.2    2        up          mpls             lte              172.16.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:00:58      0           
+192.168.255.2    2        up          lte              biz-internet     220.90.1.1                      155.48.2.2                      12346       ipsec  7           1000           0:00:00:58      0           
+192.168.255.2    2        up          lte              mpls             220.90.1.1                      172.16.2.2                      12426       ipsec  7           1000           0:00:00:58      0           
+192.168.255.2    2        up          lte              lte              220.90.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:00:58      0      
+```
+
+
+To control the data plane connectivity (BFD connections), we can set the `restrict` attribute or configure tunnel
+groups.
+### Restrict Attribute
+The restrict attribute needs to be defined per site and can be 1 or 0. 
+- restrict = 1: this device will only form the tunnels with other TLOCs advertising the color
+- retrict = 0: can form tunnels with other colors
+
+To set the `restrict` attribute of a color, we have to configure the VPN Interface associated with this color. For
+example:
+- configure `BR-VE-VPNINT-VPN0-G0` to set the `restrict` attribute for `mpls` color.
+- configure `BR-VE-VPNINT-VPN0-G1` to set the `restrict` attribute for `biz-internet` color.
+- configure `BR-VE-VPNINT-VPN0-G2` to set the `restrict` attribute for `lte` color.
+
+![text](images/03-restrict-attribute.PNG)
+
+Let's see the BFD connections after setting `restrict` attribute. There are only three BFD connections: biz-internet
+<- -> biz-internet, mpls <- -> mpls, and lte <- -> lte.
+
+```bash
+vEdge1# sh bfd sessions
+                                      SOURCE TLOC      REMOTE TLOC                                      DST PUBLIC                      DST PUBLIC         DETECT      TX                              
+SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE IP                       IP                              PORT        ENCAP  MULTIPLIER  INTERVAL(msec) UPTIME          TRANSITIONS 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+192.168.255.2    2        up          biz-internet     biz-internet     155.48.1.1                      155.48.2.2                      12346       ipsec  7           1000           0:01:25:28      0           
+192.168.255.2    2        up          mpls             mpls             172.16.1.1                      172.16.2.2                      12426       ipsec  7           1000           0:00:48:20      0           
+192.168.255.2    2        up          lte              lte              220.90.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:48:20      0          
+```
+
+
+### Tunnel Groups
