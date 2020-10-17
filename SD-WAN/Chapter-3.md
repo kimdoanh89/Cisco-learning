@@ -275,6 +275,10 @@ example:
 
 ![text](images/03-restrict-attribute.PNG)
 
+Push the configuration to the vEdge1 and vEdge2: Check the `restrict` box
+
+![text](images/03-restrict-attribute-attach.PNG)
+
 Let's see the BFD connections after setting `restrict` attribute. There are only three BFD connections: biz-internet
 <- -> biz-internet, mpls <- -> mpls, and lte <- -> lte.
 
@@ -288,5 +292,78 @@ SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE I
 192.168.255.2    2        up          lte              lte              220.90.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:48:20      0          
 ```
 
-
 ### Tunnel Groups
+
+Only tunnels with matching tunnel groups, or no tunnel group defined, will form BFD connections. If using tunnel
+groups, all sites should define tunnel groups.
+
+Let's involve now the DC1-vEdge1 with vEdge1, vEdge2. Each WAN Edge has three colors: mpls, biz-internet, lte. We
+want to restrict `biz-internet`, and set two tunnel groups:
+- Group 400: biz-internet
+- Group 500: mpls and lte
+
+Configure the tunnel groups for each VPN Interface:
+
+![text](images/03-tunnel-groups.PNG)
+
+Push the configuration to the vEdge1, vEdge2, and DC1-vEdge1: 
+- Check the `restrict` box for `biz-internet`
+- Set group accordingly for mpls, lte, and biz-internet.
+
+![text](images/03-tunnel-groups-attach.PNG)
+
+Let's see the BFD connections among three devices:
+
+```bash
+DV1-vEdge1# show bfd sessions 
+                                      SOURCE TLOC      REMOTE TLOC                                      DST PUBLIC                      DST PUBLIC         DETECT      TX                              
+SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE IP                       IP                              PORT        ENCAP  MULTIPLIER  INTERVAL(msec) UPTIME          TRANSITIONS 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+192.168.255.1    1        up          biz-internet     biz-internet     155.48.101.101                  155.48.1.1                      12346       ipsec  7           1000           0:00:06:57      1           
+192.168.255.1    1        up          mpls             mpls             172.16.101.101                  172.16.1.1                      12406       ipsec  7           1000           0:00:06:57      1           
+192.168.255.1    1        up          mpls             lte              172.16.101.101                  220.90.1.1                      12406       ipsec  7           1000           0:00:06:57      0           
+192.168.255.1    1        up          lte              mpls             220.90.101.101                  172.16.1.1                      12406       ipsec  7           1000           0:00:06:57      0           
+192.168.255.1    1        up          lte              lte              220.90.101.101                  220.90.1.1                      12406       ipsec  7           1000           0:00:06:57      1           
+192.168.255.2    2        up          biz-internet     biz-internet     155.48.101.101                  155.48.2.2                      12346       ipsec  7           1000           0:00:10:15      1           
+192.168.255.2    2        up          mpls             mpls             172.16.101.101                  172.16.2.2                      12426       ipsec  7           1000           0:00:19:30      0           
+192.168.255.2    2        up          mpls             lte              172.16.101.101                  220.90.2.2                      12426       ipsec  7           1000           0:00:10:15      0           
+192.168.255.2    2        up          lte              mpls             220.90.101.101                  172.16.2.2                      12426       ipsec  7           1000           0:00:10:14      0           
+192.168.255.2    2        up          lte              lte              220.90.101.101                  220.90.2.2                      12426       ipsec  7           1000           0:00:19:28      0      
+
+
+
+
+vEdge1# show bfd sessions
+                                      SOURCE TLOC      REMOTE TLOC                                      DST PUBLIC                      DST PUBLIC         DETECT      TX                              
+SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE IP                       IP                              PORT        ENCAP  MULTIPLIER  INTERVAL(msec) UPTIME          TRANSITIONS 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+192.168.255.2    2        up          biz-internet     biz-internet     155.48.1.1                      155.48.2.2                      12346       ipsec  7           1000           0:00:00:17      1           
+192.168.255.2    2        up          mpls             mpls             172.16.1.1                      172.16.2.2                      12426       ipsec  7           1000           0:00:00:17      1           
+192.168.255.2    2        up          mpls             lte              172.16.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:00:17      2           
+192.168.255.2    2        up          lte              mpls             220.90.1.1                      172.16.2.2                      12426       ipsec  7           1000           0:00:00:17      0           
+192.168.255.2    2        up          lte              lte              220.90.1.1                      220.90.2.2                      12426       ipsec  7           1000           0:00:00:17      1           
+192.168.255.101  101      up          biz-internet     biz-internet     155.48.1.1                      155.48.101.101                  12366       ipsec  7           1000           0:00:00:17      1           
+192.168.255.101  101      up          mpls             mpls             172.16.1.1                      172.16.101.101                  12366       ipsec  7           1000           0:00:00:17      1           
+192.168.255.101  101      up          mpls             lte              172.16.1.1                      220.90.101.101                  12366       ipsec  7           1000           0:00:00:17      0           
+192.168.255.101  101      up          lte              mpls             220.90.1.1                      172.16.101.101                  12366       ipsec  7           1000           0:00:00:17      0           
+192.168.255.101  101      up          lte              lte              220.90.1.1                      220.90.101.101                  12366       ipsec  7           1000           0:00:00:17      1           
+
+
+vEdge2# show bfd sessions 
+                                      SOURCE TLOC      REMOTE TLOC                                      DST PUBLIC                      DST PUBLIC         DETECT      TX                              
+SYSTEM IP        SITE ID  STATE       COLOR            COLOR            SOURCE IP                       IP                              PORT        ENCAP  MULTIPLIER  INTERVAL(msec) UPTIME          TRANSITIONS 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+192.168.255.1    1        up          biz-internet     biz-internet     155.48.2.2                      155.48.1.1                      12346       ipsec  7           1000           0:00:08:06      1           
+192.168.255.1    1        up          mpls             mpls             172.16.2.2                      172.16.1.1                      12406       ipsec  7           1000           0:00:08:06      1           
+192.168.255.1    1        up          mpls             lte              172.16.2.2                      220.90.1.1                      12406       ipsec  7           1000           0:00:08:06      2           
+192.168.255.1    1        up          lte              mpls             220.90.2.2                      172.16.1.1                      12406       ipsec  7           1000           0:00:08:06      0           
+192.168.255.1    1        up          lte              lte              220.90.2.2                      220.90.1.1                      12406       ipsec  7           1000           0:00:08:06      1           
+192.168.255.101  101      up          biz-internet     biz-internet     155.48.2.2                      155.48.101.101                  12366       ipsec  7           1000           0:00:11:25      1           
+192.168.255.101  101      up          mpls             mpls             172.16.2.2                      172.16.101.101                  12366       ipsec  7           1000           0:00:20:40      0           
+192.168.255.101  101      up          mpls             lte              172.16.2.2                      220.90.101.101                  12366       ipsec  7           1000           0:00:11:25      0           
+192.168.255.101  101      up          lte              mpls             220.90.2.2                      172.16.101.101                  12366       ipsec  7           1000           0:00:11:24      0           
+192.168.255.101  101      up          lte              lte              220.90.2.2                      220.90.101.101                  12366       ipsec  7           1000           0:00:20:39      0           
+
+```
+
+## Network Address Translation
