@@ -431,4 +431,5 @@ Consider we have WAN Edge A, B, and C.
 
 ### Overhead Issues
 Cisco SD-WAN use Path MTU (Maximum Transmission Unit) discovery mechanism via BFD protocol to probe 
-the tunnel to determine the maximum packet size. By default, the tunnel is checked every minute.
+the tunnel to determine the maximum packet size. By default, the tunnel is checked every minute. It is recommended
+to turn PMTU discovery off on low-bandwidth links such as VSAT, LTE.

@@ -212,8 +212,7 @@ Copy from BR-VE-VPNINT-VPN0-G0, only change the following fields:
 
 ## 2.2. Attach device template to WAN Edges
 
-### Attach BR-VE-DEV-TEMP to vEdge1
-- Use the addressing scheme in the topology to fill in the variables when apply the device template.
+- Use the IP addressing scheme in the topology to fill in the variables when apply the device template.
 
 - Attach vEdge1
 
@@ -295,3 +294,4 @@ lost-to-path-id not set
      community        not set
      unknown-attr-len not set
 ```
+
